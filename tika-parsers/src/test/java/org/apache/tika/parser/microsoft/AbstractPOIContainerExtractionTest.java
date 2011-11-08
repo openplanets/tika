@@ -43,6 +43,7 @@ public abstract class AbstractPOIContainerExtractionTest extends TestCase {
     
     public static final MediaType TYPE_TXT = MediaType.text("plain");
     public static final MediaType TYPE_PDF = MediaType.application("pdf");
+    public static final MediaType TYPE_PDFA = MediaType.application("pdfa");
     
     public static final MediaType TYPE_JPG = MediaType.image("jpeg");
     public static final MediaType TYPE_GIF = MediaType.image("gif");
