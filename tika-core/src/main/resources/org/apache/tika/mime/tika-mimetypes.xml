@@ -295,14 +295,6 @@
     <glob pattern="*.xer"/>
   </mime-type>
 
-  <mime-type type="application/pdfa">
-    <acronym>PDFA</acronym>
-    <_comment>Portable Document Format</_comment>
-    <magic priority="50">
-      <match value="%PDF-1.4" type="string" offset="0"/>
-    </magic>
-  </mime-type>
-
   <mime-type type="application/pdf">
     <alias type="application/x-pdf"/>
     <acronym>PDF</acronym>
@@ -311,6 +303,78 @@
       <match value="%PDF-" type="string" offset="0"/>
     </magic>
     <glob pattern="*.pdf"/>
+  </mime-type>
+  
+  <mime-type type="application/pdf10">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.0" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+  
+  <mime-type type="application/pdf11">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.1" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+  
+  <mime-type type="application/pdf12">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.2" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+  
+  <mime-type type="application/pdf13">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.3" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+
+  <mime-type type="application/pdf14">
+    <acronym>PDF1.4</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.4" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+  
+  <mime-type type="application/pdf15">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.5" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+  
+  <mime-type type="application/pdf16">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.6" type="string" offset="0"/>
+    </magic>
+  </mime-type>
+  
+  <mime-type type="application/pdf17">
+    <acronym>PDF1.0</acronym>
+    <_comment>Portable Document Format</_comment>
+    <sub-class-of type="application/pdf"/>
+    <magic priority="50">
+      <match value="%PDF-1.7" type="string" offset="0"/>
+    </magic>
   </mime-type>
 
   <mime-type type="application/pgp-encrypted">

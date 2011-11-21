@@ -50,7 +50,7 @@ public class PDFParserTest extends TikaTest {
             stream.close();
         }
 
-        assertEquals("application/pdf", metadata.get(Metadata.CONTENT_TYPE));
+        assertEquals("application/pdf13", metadata.get(Metadata.CONTENT_TYPE));
         assertEquals("Bertrand Delacr\u00e9taz", metadata.get(Metadata.AUTHOR));
         assertEquals("Apache Tika - Apache Tika", metadata.get(Metadata.TITLE));
         
@@ -84,19 +84,18 @@ public class PDFParserTest extends TikaTest {
             stream.close();
         }
 
-        assertEquals("application/pdfa", metadata.get(Metadata.CONTENT_TYPE));
-//        assertEquals("application/pdf", metadata.get(Metadata.CONTENT_TYPE));
-//        assertEquals("Document author", metadata.get(Metadata.AUTHOR));
-//        assertEquals("Document title", metadata.get(Metadata.TITLE));
-//        
-//        assertEquals("Custom Value", metadata.get("Custom Property"));
-//        assertEquals("Array Entry 1", metadata.get("Custom Array"));
-//        assertEquals(2, metadata.getValues("Custom Array").length);
-//        assertEquals("Array Entry 1", metadata.getValues("Custom Array")[0]);
-//        assertEquals("Array Entry 2", metadata.getValues("Custom Array")[1]);
-//        
-//        String content = handler.toString();
-//        assertTrue(content.contains("Hello World!"));
+        assertEquals("application/pdf14", metadata.get(Metadata.CONTENT_TYPE));
+        assertEquals("Document author", metadata.get(Metadata.AUTHOR));
+        assertEquals("Document title", metadata.get(Metadata.TITLE));
+        
+        assertEquals("Custom Value", metadata.get("Custom Property"));
+        assertEquals("Array Entry 1", metadata.get("Custom Array"));
+        assertEquals(2, metadata.getValues("Custom Array").length);
+        assertEquals("Array Entry 1", metadata.getValues("Custom Array")[0]);
+        assertEquals("Array Entry 2", metadata.getValues("Custom Array")[1]);
+        
+        String content = handler.toString();
+        assertTrue(content.contains("Hello World!"));
     }
     
     /**
@@ -118,7 +117,7 @@ public class PDFParserTest extends TikaTest {
            stream.close();
        }
 
-       assertEquals("application/pdf", metadata.get(Metadata.CONTENT_TYPE));
+       assertEquals("application/pdf16", metadata.get(Metadata.CONTENT_TYPE));
        assertEquals("The Bank of England", metadata.get(Metadata.AUTHOR));
        assertEquals("Speeches by Andrew G Haldane", metadata.get(Metadata.SUBJECT));
        assertEquals("Rethinking the Financial Network, Speech by Andrew G Haldane, Executive Director, Financial Stability delivered at the Financial Student Association, Amsterdam on 28 April 2009", metadata.get(Metadata.TITLE));

@@ -293,8 +293,8 @@ public class TestMimeTypes extends TestCase {
     }
 
     public void testPdfDetection() throws Exception {
-        assertType("application/pdf", "testPDF.pdf");
-        assertTypeByData("application/pdf", "testPDF.pdf");
+        assertType("application/pdf13", "testPDF.pdf");
+        assertTypeByData("application/pdf13", "testPDF.pdf");
         assertTypeByName("application/pdf", "x.pdf");
         assertTypeByName("application/pdf", "x.PDF");
     }
@@ -452,7 +452,7 @@ public class TestMimeTypes extends TestCase {
         assertType(
                 "application/vnd.oasis.opendocument.text",
                 "testOpenOffice2.odt");
-        assertType("application/pdf", "testPDF.pdf");
+        assertType("application/pdf13", "testPDF.pdf");
         assertType("application/rtf", "testRTF.rtf");
         assertType("text/plain", "testTXT.txt");
         assertType("application/xml", "testXML.xml");

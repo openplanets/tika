@@ -38,7 +38,7 @@ public class AutoDetectParserTest extends TestCase {
     private static final String RAW        = "application/octet-stream";
     private static final String EXCEL      = "application/vnd.ms-excel";
     private static final String HTML       = "text/html";
-    private static final String PDF        = "application/pdf";
+    private static final String PDF        = "application/pdf13";
     private static final String POWERPOINT = "application/vnd.ms-powerpoint";
     private static final String KEYNOTE    = "application/vnd.apple.keynote";
     private static final String PAGES      = "application/vnd.apple.pages";

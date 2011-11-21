@@ -68,14 +68,8 @@ public class PDFParser extends AbstractParser {
     private boolean extractAnnotationText = true;
 
     private static final Set<MediaType> SUPPORTED_TYPES =
-    	// Different PDF version media types
-    	Collections.unmodifiableSet(new HashSet<MediaType>(Arrays.asList(
-    			MediaType.application("pdf"),
-    			MediaType.application("pdfa")
-    			)));
-//        Collections.singleton(MediaType.application("pdf"));
-
-    
+        Collections.singleton(MediaType.application("pdf"));
+   
     public Set<MediaType> getSupportedTypes(ParseContext context) {
         return SUPPORTED_TYPES;
     }
