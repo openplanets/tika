@@ -88,7 +88,7 @@ public class ParsingEmbeddedDocumentExtractor implements EmbeddedDocumentExtract
             handler.characters(chars, 0, chars.length);
             handler.endElement(XHTML, "h1", "h1");
         }
-
+        
         // Use the delegate parser to parse this entry
         TemporaryResources tmp = new TemporaryResources();
         try {
@@ -110,6 +110,28 @@ public class ParsingEmbeddedDocumentExtractor implements EmbeddedDocumentExtract
                                     newStream,
                                     new EmbeddedContentHandler(new BodyContentHandler(handler)),
                                     metadata, context);
+            // ANJ Embed metadata inside the parsed resource:
+            for ( String name2 : metadata.names()) {
+            	//System.err.println("ARGH2: "+name2+" "+metadata.get(name2));
+                if (name2.equals(Metadata.RESOURCE_NAME_KEY)) {
+                    continue;
+                }
+                
+                for (String value : metadata.getValues(name2)) {
+                    // Putting null values into attributes causes problems, but is
+                    // allowed by Metadata, so guard against that.
+                    if (value != null) {
+                        AttributesImpl attributes = new AttributesImpl();
+                        attributes.addAttribute("", "name", "name", "CDATA", name2);
+                        attributes.addAttribute("", "content", "content", "CDATA", value);
+                        handler.startElement(XHTML, "meta", "meta", attributes);
+                        handler.endElement(XHTML, "meta", "meta");
+                    }
+                }
+            }
+        	//System.out.println("done2\n");
+
+            
         } catch (TikaException e) {
             // TODO: can we log a warning somehow?
             // Could not parse the entry, just skip the content

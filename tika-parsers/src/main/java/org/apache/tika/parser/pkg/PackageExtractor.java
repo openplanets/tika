@@ -166,6 +166,22 @@ class PackageExtractor {
                         if (extractor.shouldParseEmbedded(entrydata)) {
                             extractor.parseEmbedded(archive, xhtml, entrydata, true);
                         }
+                        // Patch entry metadata into the upper-level:
+                        for( String edname : entrydata.names() ) {
+                        	// Start with the property name:
+                        	String newname = "";
+                        	// Append the path:
+                        	String parentname = metadata.get(Metadata.RESOURCE_NAME_KEY);
+                        	if( parentname == null ) {
+                        		parentname = "";
+                        	} else {
+                        		parentname += "!";
+                        	}
+                        	newname += parentname + name + ":" + edname;
+                        	// Store the name-value pair:
+                        	metadata.add(newname, entrydata.get(edname));
+                        	System.err.println("TEST: "+newname+" = "+entrydata.get(edname));
+                        }
                     } else if (name != null && name.length() > 0) {
                         xhtml.element("p", name);
                     }
