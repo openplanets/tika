@@ -3238,7 +3238,15 @@
   <mime-type type="image/ief">
     <glob pattern="*.ief"/>
   </mime-type>
-  <mime-type type="image/jp2"/>
+  <mime-type type="image/jp2">
+    <acronym>JP2K</acronym>
+    <_comment>Joint Photographic Experts Group</_comment>
+    <magic priority="50">
+      <match value="0x0000000c6a5020200d0a870a" type="string" offset="0"/>
+    </magic>
+  	<glob pattern="*.jp2" />
+  	<glob pattern="*.jp2k" />
+  </mime-type>
 
   <mime-type type="image/jpeg">
     <acronym>JPEG</acronym>
