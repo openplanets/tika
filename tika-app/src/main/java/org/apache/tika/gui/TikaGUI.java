@@ -318,8 +318,6 @@ public class TikaGUI extends JFrame
         input = new ProgressMonitorInputStream(
                 this, "Parsing stream", input);
         parser.parse(input, handler, md, context);
-        
-        System.out.println(parser.toString());
 
         String[] names = md.names();
         Arrays.sort(names);
