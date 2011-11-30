@@ -83,7 +83,7 @@ public class TNEFParserTest extends AbstractPOIContainerExtractionTest {
        assertEquals(MediaType.text("html"), handler.mediaTypes.get(2));
        
        assertEquals("quick.pdf", handler.filenames.get(3));
-       assertEquals(MediaType.application("pdf13"), handler.mediaTypes.get(3));
+       assertEquals(MediaType.application("pdf", "version=1.3"), handler.mediaTypes.get(3));
        
        assertEquals("quick.txt", handler.filenames.get(4));
        assertEquals(MediaType.text("plain"), handler.mediaTypes.get(4));

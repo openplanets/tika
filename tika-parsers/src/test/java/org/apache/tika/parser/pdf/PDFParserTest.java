@@ -50,7 +50,7 @@ public class PDFParserTest extends TikaTest {
             stream.close();
         }
 
-        assertEquals("application/pdf13", metadata.get(Metadata.CONTENT_TYPE));
+        assertEquals("application/pdf; version=1.3", metadata.get(Metadata.CONTENT_TYPE));
         assertEquals("Bertrand Delacr\u00e9taz", metadata.get(Metadata.AUTHOR));
         assertEquals("Apache Tika - Apache Tika", metadata.get(Metadata.TITLE));
         
@@ -84,7 +84,12 @@ public class PDFParserTest extends TikaTest {
             stream.close();
         }
 
-        assertEquals("application/pdf14", metadata.get(Metadata.CONTENT_TYPE));
+        
+//        for(String s: metadata.getValues(Metadata.CONTENT_TYPE)){
+//        	assertEquals("application/pdf", metadata.get(Metadata.CONTENT_TYPE));
+//        	assertEquals("application/pdf14", metadata.get(Metadata.CONTENT_TYPE));
+//        }
+        assertEquals("application/pdf; version=1.4", metadata.get(Metadata.CONTENT_TYPE));
         assertEquals("Document author", metadata.get(Metadata.AUTHOR));
         assertEquals("Document title", metadata.get(Metadata.TITLE));
         
@@ -117,7 +122,7 @@ public class PDFParserTest extends TikaTest {
            stream.close();
        }
 
-       assertEquals("application/pdf16", metadata.get(Metadata.CONTENT_TYPE));
+       assertEquals("application/pdf; version=1.6", metadata.get(Metadata.CONTENT_TYPE));
        assertEquals("The Bank of England", metadata.get(Metadata.AUTHOR));
        assertEquals("Speeches by Andrew G Haldane", metadata.get(Metadata.SUBJECT));
        assertEquals("Rethinking the Financial Network, Speech by Andrew G Haldane, Executive Director, Financial Stability delivered at the Financial Student Association, Amsterdam on 28 April 2009", metadata.get(Metadata.TITLE));
