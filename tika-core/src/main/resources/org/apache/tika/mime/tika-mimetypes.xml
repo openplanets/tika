@@ -306,8 +306,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.0">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.0</acronym>
+    <_comment>Portable Document Format - Version 1.0</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.0" type="string" offset="0"/>
@@ -315,8 +315,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.1">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF1.1</acronym>
+    <_comment>Portable Document Format - Version 1.1</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.1" type="string" offset="0"/>
@@ -324,8 +324,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.2">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.2</acronym>
+    <_comment>Portable Document Format - Version 1.2</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.2" type="string" offset="0"/>
@@ -333,8 +333,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.3">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.3</acronym>
+    <_comment>Portable Document Format - Version 1.3</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.3" type="string" offset="0"/>
@@ -342,8 +342,8 @@
   </mime-type>
 
   <mime-type type="application/pdf; version=1.4">
-    <acronym>PDF1.4</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.4</acronym>
+    <_comment>Portable Document Format - Version 1.4</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.4" type="string" offset="0"/>
@@ -351,8 +351,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.5">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.5</acronym>
+    <_comment>Portable Document Format - Version 1.5</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.5" type="string" offset="0"/>
@@ -360,8 +360,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.6">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.6</acronym>
+    <_comment>Portable Document Format - Version 1.6</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.6" type="string" offset="0"/>
@@ -369,8 +369,8 @@
   </mime-type>
   
   <mime-type type="application/pdf; version=1.7">
-    <acronym>PDF1.0</acronym>
-    <_comment>Portable Document Format</_comment>
+    <acronym>PDF 1.7</acronym>
+    <_comment>Portable Document Format - Version 1.7</_comment>
     <sub-class-of type="application/pdf"/>
     <magic priority="50">
       <match value="%PDF-1.7" type="string" offset="0"/>
