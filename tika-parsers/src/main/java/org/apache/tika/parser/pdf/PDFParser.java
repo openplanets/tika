@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -68,7 +69,7 @@ public class PDFParser extends AbstractParser {
 
     private static final Set<MediaType> SUPPORTED_TYPES =
         Collections.singleton(MediaType.application("pdf"));
-
+   
     public Set<MediaType> getSupportedTypes(ParseContext context) {
         return SUPPORTED_TYPES;
     }
@@ -91,7 +92,8 @@ public class PDFParser extends AbstractParser {
                     // Ignore
                 }
             }
-            metadata.set(Metadata.CONTENT_TYPE, "application/pdf");
+            // PSM: Content Type set in AutoDetectParser.parse() - does it need to be explicitly set here?
+            //metadata.set(Metadata.CONTENT_TYPE, "application/pdf");
             extractMetadata(pdfDocument, metadata);
             PDF2XHTML.process(pdfDocument, handler, metadata, extractAnnotationText, enableAutoSpace);
         } finally {
