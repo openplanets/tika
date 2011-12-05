@@ -252,7 +252,7 @@ final class MimeTypesReader implements MimeTypesReaderMetKeys {
         }
 
         MagicDetector detector = new MagicDetector(
-                mediaType, patternBytes, maskBytes, start, end);
+                mediaType, type, patternBytes, maskBytes, start, end);
         Clause clause = new MagicMatch(detector, length);
 
         List<Clause> subClauses = readMatches(element, mediaType);
@@ -285,10 +285,14 @@ final class MimeTypesReader implements MimeTypesReaderMetKeys {
             radix = 8;
         }
 
-        if (type.equals("string") || type.equals("unicodeLE") || type.equals("unicodeBE")) {
+        if (type.equals("string") || type.equals("regex") || type.equals("unicodeLE") || type.equals("unicodeBE")) {
             decoded = decodeString(value, type);
-            
-        } else if (type.equals("byte")) {
+
+//        }else if (type.equals("regex")) {
+//        	// PSM: Added regex support
+//        	decoded = decodeRegex(value);
+//        
+    	}else if (type.equals("byte")) {
             decoded = tmpVal.getBytes();
 
         } else if (type.equals("host16") || type.equals("little16")) {
@@ -382,6 +386,16 @@ final class MimeTypesReader implements MimeTypesReaderMetKeys {
             throw new MimeTypeException("Invalid string value: " + value, e);
         }
     }
+    
+    /**
+     * Decodes the regular expression into a byte
+     * @param value
+     * @return
+     * @throws MimeTypeException
+     */
+//    private byte[] decodeRegex(String value) throws MimeTypeException {
+//    	
+//    }
 
     /** Read Element named root-XML. */
     private void readRootXML(Element element, MimeType mimeType) {

@@ -18,6 +18,11 @@ package org.apache.tika.detect;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -41,6 +46,11 @@ public class MagicDetector implements Detector {
      */
     private final int length;
 
+    /**
+     * PSM: Add pattern type (regex or String)
+     */
+    private final String patternType;
+    
     /**
      * The magic match pattern. If this byte pattern is equal to the
      * possibly bit-masked bytes from the input stream, then the type
@@ -96,6 +106,70 @@ public class MagicDetector implements Detector {
     }
 
     /**
+     * Creates a detector capable of handling regular expression pattern types
+     * 
+     * @param type
+     * @param patternType
+     * @param pattern
+     * @param mask
+     * @param offsetRangeBegin
+     * @param offsetRangeEnd
+     */
+    public MagicDetector(
+    		MediaType type, String patternType, byte[] pattern, byte[] mask,
+            int offsetRangeBegin, int offsetRangeEnd) {
+    	if (type == null) {
+            throw new IllegalArgumentException("Matching media type is null");
+        } else if (pattern == null) {
+            throw new IllegalArgumentException("Magic match pattern is null");
+        } else if (offsetRangeBegin < 0
+                || offsetRangeEnd < offsetRangeBegin) {
+            throw new IllegalArgumentException(
+                    "Invalid offset range: ["
+                    + offsetRangeBegin + "," + offsetRangeEnd + "]");
+        }
+
+        this.type = type;
+
+        // Length of regular expression does not reflect the buffer byte length. 
+        // Simple solution to handle with an 8K buffer, but this currently causes test failures
+//        if (patternType.equals("regex")){
+//        	this.length = 8*1024; // 8K buffer
+//        } else {
+        	this.length = Math.max(pattern.length, mask != null ? mask.length : 0);
+//        }
+
+        this.mask = new byte[length];
+        this.pattern = new byte[length];
+        this.patternType = patternType;
+
+        for (int i = 0; i < length; i++) {
+            if (mask != null && i < mask.length) {
+                this.mask[i] = mask[i];
+            } else {
+                this.mask[i] = -1;
+            }
+
+            if (i < pattern.length) {
+                this.pattern[i] = (byte) (pattern[i] & this.mask[i]);
+            } else {
+                this.pattern[i] = 0;
+            }
+        }
+
+        this.offsetRangeBegin = offsetRangeBegin;
+        this.offsetRangeEnd = offsetRangeEnd;
+        
+        // Build the string representation. Needs to be unique, as
+        //  these get compared. Compute now as may get compared a lot!
+        this.asString = "Magic Detection for " + type.toString() +
+          " looking for " + pattern.length + 
+          " bytes = " + this.pattern + 
+          " mask = " + this.mask;
+    	
+    }
+    
+    /**
      * Creates a detector for input documents that meet the specified
      * magic match.
      */
@@ -119,6 +193,7 @@ public class MagicDetector implements Detector {
 
         this.mask = new byte[length];
         this.pattern = new byte[length];
+        this.patternType = "";
 
         for (int i = 0; i < length; i++) {
             if (mask != null && i < mask.length) {
@@ -187,16 +262,38 @@ public class MagicDetector implements Detector {
             if (offset < offsetRangeBegin + length) {
                 return MediaType.OCTET_STREAM;
             }
+                    
+            // PSM: Introduce matching using Regular Expressions
+            if( this.patternType.equals("regex") ) {
+//            	System.out.println("Matching on regular expression: "+new String(this.pattern));
+            	Pattern p = Pattern.compile(new String(this.pattern));
 
-            // Loop until we've covered the entire offset range
-            for (int i = 0; i <= offsetRangeEnd - offsetRangeBegin; i++) {
-                boolean match = true;
-                for (int j = 0; match && j < length; j++) {
-                    match = (buffer[i + j] & mask[j]) == pattern[j];
-                }
-                if (match) {
-                    return type;
-                }
+            	ByteBuffer bb = ByteBuffer.wrap(buffer);
+            	CharBuffer result = Charset.forName("ISO-8859-1").decode(bb);
+            	Matcher m = p.matcher(result);
+            	//Matcher m = p.matcher(new String(buffer));
+            	boolean match = false;
+            	for (int i=0; i<= offsetRangeEnd - offsetRangeBegin; i++){
+//            		System.out.println("Buffer["+i+"]: "+(new String(buffer)).substring(i, i+length));
+            		
+            		m.region(i, length+i);
+            		match = m.lookingAt();	// match regular expression from start of region
+            	}
+            	if(match){
+            		return type;
+            	}
+            } else {
+//            	System.out.println("Matching using non-regex ("+new String(this.pattern)+")");
+                // Loop until we've covered the entire offset range
+	            for (int i = 0; i <= offsetRangeEnd - offsetRangeBegin; i++) {
+	                boolean match = true;
+	                for (int j = 0; match && j < length; j++) {
+	                    match = (buffer[i + j] & mask[j]) == pattern[j];
+	                }
+	                if (match) {
+	                    return type;
+	                }
+	            }
             }
 
             return MediaType.OCTET_STREAM;
