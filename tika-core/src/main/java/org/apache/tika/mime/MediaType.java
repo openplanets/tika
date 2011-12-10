@@ -66,6 +66,22 @@ public final class MediaType implements Comparable<MediaType>, Serializable {
     public static MediaType application(String type) {
         return new MediaType("application", type);
     }
+    
+    /**
+     * Create a new application MediaType of the specified subtype with specified parameters
+     * @param subtype
+     * @param parameters
+     * @return
+     */
+    public static MediaType application (String subtype, String parameters) {
+    	Map<String, String> params = new HashMap<String, String>();
+    	String[] param_array = parameters.split(";");
+    	for (String param: param_array){
+    		String[] components = param.split("=");
+    		params.put(components[0].trim(), components[1].trim());
+    	}
+    	return new MediaType("application", subtype, params);
+    }
 
     public static MediaType audio(String type) {
         return new MediaType("audio", type);

@@ -251,7 +251,7 @@ public class POIContainerExtractionTest extends AbstractPOIContainerExtractionTe
        assertEquals(TYPE_MSG, handler.mediaTypes.get(0));
        
        assertEquals("smbprn.00009008.KdcPjl.pdf", handler.filenames.get(1));
-       assertEquals(TYPE_PDF, handler.mediaTypes.get(1));
+       assertEquals(TYPE_PDF14, handler.mediaTypes.get(1));
     }
 
     public void testEmbeddedOfficeFilesXML() throws Exception {
