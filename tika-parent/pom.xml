@@ -27,6 +27,7 @@
 	<packaging>pom</packaging>
 
 	<name>SCAPE Tika parent</name>
+	<url>http://www.scape-project.eu/</url>
 	<description>
 	This is the SCAPE fork of the Apache Tika project http://tika.apache.org/.
     Apache Tika is a toolkit for detecting and extracting metadata and

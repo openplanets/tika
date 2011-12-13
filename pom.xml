@@ -24,8 +24,8 @@
 
 	<artifactId>tika</artifactId>
 	<packaging>pom</packaging>
-	<name>Apache Tika</name>
-	<url>http://tika.apache.org</url>
+	<name>SCAPE Tika</name>
+	<url>http://www.scape-project.eu/</url>
 
 	<scm>
 		<connection>scm:git:git@github.com:openplanets/tika.git</connection>
