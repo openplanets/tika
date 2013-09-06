@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -115,6 +116,7 @@ public class MP4Parser extends AbstractParser {
         TikaInputStream tstream = TikaInputStream.get(stream);
         try {
            isoFile = new IsoFile(tstream.getFileChannel());
+           System.out.println("\nISO "+isoFile);
         } finally {
            tstream.close();
         }
@@ -175,12 +177,18 @@ public class MP4Parser extends AbstractParser {
            metadata.set(XMPDM.AUDIO_SAMPLE_RATE, (int)mHeader.getTimescale());
         }
         
-        
         // Get some more information from the track header
         // TODO Decide how to handle multiple tracks
+        // See https://code.google.com/p/mp4parser/source/browse/trunk/isoparser/src/main/resources/isoparser-default.properties
+        // Want: video/mp4; codecs="avc1.66.13, mp4a.40.2"
+        // List http://wiki.whatwg.org/wiki/Video_type_parameters
+        //   but e.g. no 'constrained baseline'
+        // MP4 container ~= https://developer.apple.com/standards/qtff-2001.pdf
+        // http://stackoverflow.com/questions/10242630/ffmpeg-read-profile-level-information-from-mp4
         List<TrackBox> tb = moov.getBoxes(TrackBox.class);
+        String codecs = "";
         if (tb.size() > 0) {
-           TrackBox track = tb.get(0);
+          for( TrackBox track : tb ) {
            
            TrackHeaderBox header = track.getTrackHeaderBox();
            // Get the creation and modification dates
@@ -210,7 +218,28 @@ public class MP4Parser extends AbstractParser {
                  //metadata.set(XMPDM.AUDIO_, sample.getSamplesPerPacket());
                  //metadata.set(XMPDM.AUDIO_, sample.getBytesPerSample());
               }
+        	  String handlerType = track.getMediaBox().getHandlerBox().getHandlerType();
+        	  String handlerName = track.getMediaBox().getHandlerBox().getName();
+              System.out.println("HBHT "+handlerType);
+              System.out.println("HBN "+handlerName);
+        	  com.coremedia.iso.boxes.sampleentry.SampleEntry se = sampleDesc.getSampleEntry();
+              if( se != null ) {
+                	System.out.println("VSE "+se.getType());
+              } else {
+              		System.out.println("VSE ERRR ");
+              		for( Box b : sampleDesc.getBoxes() ) {
+                  		System.out.println("VSE ERRR "+b.getType());              			
+              		}
+              }
+              // Build up list of codecs:
+              if( sampleDesc.getBoxes().size() > 0 ) {
+            	  if( !codecs.equals("") ) codecs += ",";
+            	  codecs += sampleDesc.getBoxes().get(0).getType();
+              }
            }
+          }
+          metadata.set("CODECS", codecs);
+          System.err.print("video/mov; codecs=\""+codecs+"\"");
         }
         
         // Get metadata from the User Data Box
@@ -310,5 +339,12 @@ public class MP4Parser extends AbstractParser {
           return null;
        }
        return boxes.get(0);
+    }
+    
+    public static void main( String[] args ) throws IOException {
+    	Tika ti = new Tika();
+    	ti.parse(new java.io.File("/Users/andy/Downloads/FshIlnd2.mov"));
+    	ti.parse(new java.io.File("/Users/andy/Documents/USB Drives/EGEE/DPT Talk/THE ROBOT.mp4"));
+    	
     }
 }
