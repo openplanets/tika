@@ -1477,6 +1477,14 @@
     <sub-class-of type="application/x-tika-msoffice"/>
   </mime-type>
 
+  <mime-type type="application/x-project">
+    <glob pattern="*.mpx"/>
+    <magic priority="50">
+      <match value="MPX,Microsoft Project for Windows," type="string" offset="0"/>
+    </magic>
+    <sub-class-of type="text/plain"/>
+  </mime-type>
+
   <mime-type type="application/vnd.ms-tnef">
     <alias type="application/ms-tnef" />
     <magic priority="50">
@@ -5500,6 +5508,33 @@
       <match value="MOVI" type="string" offset="0"/>
     </magic>
     <glob pattern="*.movie"/>
+  </mime-type>
+  
+  <mime-type type="application/x-matroska">
+    <_comment>Matroska Media Container</_comment>
+    <!-- Common magic across all Matroska varients -->
+    <!-- For full detection, we need a custom Detector, see TIKA-1180 -->
+    <magic priority="40">
+      <match value="0x1A45DFA3" type="string" offset="0" />
+    </magic>
+  </mime-type>
+
+  <mime-type type="video/x-matroska">
+    <sub-class-of type="application/x-matroska"/>
+    <glob pattern="*.mkv" />
+    <!-- Note: The magic value below isn't present in all MKV files -->
+    <magic priority="50">
+      <match value="0x1A45DFA3934282886D6174726F736B61" type="string" offset="0" />
+    </magic>
+  </mime-type>
+  <mime-type type="audio/x-matroska">
+    <sub-class-of type="application/x-matroska"/>
+    <glob pattern="*.mka" />
+  </mime-type>
+
+  <mime-type type="video/webm">
+    <sub-class-of type="application/x-matroska"/>
+    <glob pattern="*.webm" />
   </mime-type>
 
   <mime-type type="x-conference/x-cooltalk">

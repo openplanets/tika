@@ -79,8 +79,7 @@ public class PowerPointParserTest extends TikaTest {
         assertContains("Here is a citation:", content);
         assertContains("Figure 1 This is a caption for Figure 1", content);
         assertContains("(Kramer)", content);
-        // TODO Work out why the upgrade to POI 3.9 broke this test (table text)
-//        assertContains("Row 1 Col 1 Row 1 Col 2 Row 1 Col 3 Row 2 Col 1 Row 2 Col 2 Row 2 Col 3", content.replaceAll("\\s+"," "));
+        assertContains("Row 1 Col 1 Row 1 Col 2 Row 1 Col 3 Row 2 Col 1 Row 2 Col 2 Row 2 Col 3", content.replaceAll("\\s+"," "));
         assertContains("Row 1 column 1 Row 2 column 1 Row 1 column 2 Row 2 column 2", content.replaceAll("\\s+"," "));
         assertContains("This is a hyperlink", content);
         assertContains("Here is a list:", content);
@@ -142,6 +141,9 @@ public class PowerPointParserTest extends TikaTest {
 
         // Make sure boilerplate text didn't come through:
         assertEquals(-1, content.indexOf("Click to edit Master"));
+ 
+       //TIKA-1171
+       assertEquals(-1, content.indexOf("*"));
     }
 
     // TODO: once we fix TIKA-712, re-enable this
@@ -162,6 +164,9 @@ public class PowerPointParserTest extends TikaTest {
 
         // Make sure boilerplate text didn't come through:
         assertEquals(-1, content.indexOf("Click to edit Master"));
+
+        //TIKA-1171
+        assertEquals(-1, content.indexOf("*"));
     }
 
     // TODO: once we fix TIKA-712, re-enable this
@@ -182,6 +187,8 @@ public class PowerPointParserTest extends TikaTest {
 
         // Make sure boilerplate text didn't come through:
         assertEquals(-1, content.indexOf("Click to edit Master"));
+        //TIKA-1171
+        assertEquals(-1, content.indexOf("*"));
     }
 
     /**
@@ -222,7 +229,18 @@ public class PowerPointParserTest extends TikaTest {
     // TIKA-1025
     public void testEmbeddedPlacedholder() throws Exception {
        XMLResult result = getXML("testPPT_embedded2.ppt");
-       assertContains("<div class=\"embedded\" id=\"1\"/>", result.xml);
-       assertContains("<div class=\"embedded\" id=\"14\"/>", result.xml);
+       assertContains("<div class=\"embedded\" id=\"1\" />", result.xml);
+       assertContains("<div class=\"embedded\" id=\"14\" />", result.xml);
+    }
+
+    // TIKA-817
+    public void testAutoDatePPT() throws Exception {
+       //decision was made in POI-52367 not to generate
+       //autodate automatically.  For pptx, where value is stored,
+       //value is extracted.  For ppt, however, no date is extracted.
+       XMLResult result = getXML("testPPT_autodate.ppt");
+       assertContains(
+               "<p class=\"slide-content\">Now<br />\n*<br />\n*<br />",
+               result.xml);
     }
 }
