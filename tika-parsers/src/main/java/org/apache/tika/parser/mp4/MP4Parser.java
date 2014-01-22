@@ -116,7 +116,6 @@ public class MP4Parser extends AbstractParser {
         TikaInputStream tstream = TikaInputStream.get(stream);
         try {
            isoFile = new IsoFile(tstream.getFileChannel());
-           System.out.println("\nISO "+isoFile);
         } finally {
            tstream.close();
         }
@@ -182,6 +181,7 @@ public class MP4Parser extends AbstractParser {
         // See https://code.google.com/p/mp4parser/source/browse/trunk/isoparser/src/main/resources/isoparser-default.properties
         // Want: video/mp4; codecs="avc1.66.13, mp4a.40.2"
         // List http://wiki.whatwg.org/wiki/Video_type_parameters
+        // Spec. http://tools.ietf.org/html/rfc4281#section-5
         //   but e.g. no 'constrained baseline'
         // MP4 container ~= https://developer.apple.com/standards/qtff-2001.pdf
         // http://stackoverflow.com/questions/10242630/ffmpeg-read-profile-level-information-from-mp4
@@ -218,9 +218,10 @@ public class MP4Parser extends AbstractParser {
                  //metadata.set(XMPDM.AUDIO_, sample.getSamplesPerPacket());
                  //metadata.set(XMPDM.AUDIO_, sample.getBytesPerSample());
               }
+              /*
         	  String handlerType = track.getMediaBox().getHandlerBox().getHandlerType();
         	  String handlerName = track.getMediaBox().getHandlerBox().getName();
-              System.out.println("HBHT "+handlerType);
+        	  System.out.println("HBHT "+handlerType);
               System.out.println("HBN "+handlerName);
         	  com.coremedia.iso.boxes.sampleentry.SampleEntry se = sampleDesc.getSampleEntry();
               if( se != null ) {
@@ -231,15 +232,16 @@ public class MP4Parser extends AbstractParser {
                   		System.out.println("VSE ERRR "+b.getType());              			
               		}
               }
+              */
               // Build up list of codecs:
               if( sampleDesc.getBoxes().size() > 0 ) {
-            	  if( !codecs.equals("") ) codecs += ",";
+            	  if( !codecs.equals("") ) codecs += ", ";
             	  codecs += sampleDesc.getBoxes().get(0).getType();
               }
            }
           }
           metadata.set("CODECS", codecs);
-          System.err.print("video/mov; codecs=\""+codecs+"\"");
+          System.out.print(metadata.get(Metadata.RESOURCE_NAME_KEY)+": video/mov; codecs=\""+codecs.toLowerCase()+"\"\n");
         }
         
         // Get metadata from the User Data Box
@@ -340,11 +342,15 @@ public class MP4Parser extends AbstractParser {
        }
        return boxes.get(0);
     }
-    
+
+    // Samples from http://support.apple.com/kb/HT1425
     public static void main( String[] args ) throws IOException {
     	Tika ti = new Tika();
     	ti.parse(new java.io.File("/Users/andy/Downloads/FshIlnd2.mov"));
     	ti.parse(new java.io.File("/Users/andy/Documents/USB Drives/EGEE/DPT Talk/THE ROBOT.mp4"));
-    	
+    	ti.parse(new java.io.File("sample_mpeg4.mp4"));
+    	ti.parse(new java.io.File("sample_sorenson.mov"));
+    	ti.parse(new java.io.File("sample.3gp"));
+    	ti.parse(new java.io.File("sample_3GPP2.3g2"));
     }
 }
