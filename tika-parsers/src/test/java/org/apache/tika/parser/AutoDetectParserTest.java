@@ -16,13 +16,16 @@
  */
 package org.apache.tika.parser;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
-
-import junit.framework.TestCase;
 
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.detect.Detector;
@@ -31,9 +34,10 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.XMPDM;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.sax.BodyContentHandler;
+import org.junit.Test;
 import org.xml.sax.ContentHandler;
 
-public class AutoDetectParserTest extends TestCase {
+public class AutoDetectParserTest {
     private TikaConfig tika = TikaConfig.getDefaultConfig();
 
     // Easy to read constants for the MIME types:
@@ -45,6 +49,7 @@ public class AutoDetectParserTest extends TestCase {
     private static final String KEYNOTE    = "application/vnd.apple.keynote";
     private static final String PAGES      = "application/vnd.apple.pages";
     private static final String NUMBERS    = "application/vnd.apple.numbers";
+    private static final String CHM        = "application/vnd.ms-htmlhelp";
     private static final String RTF        = "application/rtf";
     private static final String PLAINTEXT  = "text/plain; charset=ISO-8859-1";
     private static final String UTF8TEXT   = "text/plain; charset=UTF-8";
@@ -145,74 +150,96 @@ public class AutoDetectParserTest extends TestCase {
         assertAutoDetect(resource, badResource, type, wrongMimeType, content);
     }
 
+    @Test
     public void testKeynote() throws Exception {
         assertAutoDetect("testKeynote.key", KEYNOTE, "A sample presentation");
     }
 
+    @Test
     public void testPages() throws Exception {
         assertAutoDetect("testPages.pages", PAGES, "Sample pages document");
     }
 
+    @Test
     public void testNumbers() throws Exception {
         assertAutoDetect("testNumbers.numbers", NUMBERS, "Checking Account: 300545668");
     }
 
+    @Test
+    public void testChm() throws Exception {
+        assertAutoDetect("testChm.chm", CHM, "If you do not specify a window type or a window name, the main window is used.");
+    }
+
+    @Test
     public void testEpub() throws Exception {
         assertAutoDetect(
                 "testEPUB.epub", "application/epub+zip",
                 "The previous headings were subchapters");
     }
 
+    @Test
     public void testExcel() throws Exception {
         assertAutoDetect("testEXCEL.xls", EXCEL, "Sample Excel Worksheet");
     }
 
+    @Test
     public void testHTML() throws Exception {
         assertAutoDetect("testHTML.html", HTML, "Test Indexation Html");
     }
 
+    @Test
     public void testOpenOffice() throws Exception {
         assertAutoDetect("testOpenOffice2.odt", OPENOFFICE,
                 "This is a sample Open Office document");
     }
 
+    @Test
     public void testPDF() throws Exception {
         assertAutoDetect("testPDF.pdf", PDF, "Content Analysis Toolkit");
 
     }
 
+    @Test
     public void testPowerpoint() throws Exception {
         assertAutoDetect("testPPT.ppt", POWERPOINT, "Sample Powerpoint Slide");
     }
 
+    @Test
     public void testRdfXml() throws Exception {
         assertAutoDetect("testRDF.rdf", "application/rdf+xml", "");
     }
 
+    @Test
     public void testRTF() throws Exception {
         assertAutoDetect("testRTF.rtf", RTF, "indexation Word");
     }
 
+    @Test
     public void testText() throws Exception {
         assertAutoDetect("testTXT.txt", PLAINTEXT, "indexation de Txt");
     }
     
+    @Test
     public void testTextNonASCIIUTF8() throws Exception {
         assertAutoDetect("testTXTNonASCIIUTF8.txt", UTF8TEXT, "The quick brown fox jumps over the lazy dog");
     }
 
+    @Test
     public void testWord() throws Exception {
         assertAutoDetect("testWORD.doc", WORD, "Sample Word Document");
     }
 
+    @Test
     public void testXML() throws Exception {
         assertAutoDetect("testXML.xml", XML, "Lius");
     }
 
+    @Test
     public void testRss() throws Exception {
         assertAutoDetect("/test-documents/rsstest.rss", "feed", RSS, "application/rss+xml", "Sample RSS File for Junit test");
     }
     
+    @Test
     public void testImages() throws Exception {
        assertAutoDetect("testBMP.bmp", BMP, null);
        assertAutoDetect("testGIF.gif", GIF, null);
@@ -225,6 +252,7 @@ public class AutoDetectParserTest extends TestCase {
      *
      * @see <a href="https://issues.apache.org/jira/browse/TIKA-216">TIKA-216</a>
      */
+    @Test
     public void testZipBombPrevention() throws Exception {
         InputStream tgz = AutoDetectParserTest.class.getResourceAsStream(
                 "/test-documents/TIKA-216.tgz");
@@ -246,6 +274,7 @@ public class AutoDetectParserTest extends TestCase {
      *  included, and are available
      */
     @SuppressWarnings("deprecation")
+    @Test
     public void testVorbisFlac() throws Exception {
        // The three test files should all have similar test data
        String[] testFiles = new String[] {
@@ -307,6 +336,7 @@ public class AutoDetectParserTest extends TestCase {
      * list of supported parsers.
      * @see <a href="https://issues.apache.org/jira/browse/TIKA-514">TIKA-514</a>
      */
+    @Test
     public void testSpecificParserList() throws Exception {
         AutoDetectParser parser = new AutoDetectParser(new MyDetector(), new MyParser());
         

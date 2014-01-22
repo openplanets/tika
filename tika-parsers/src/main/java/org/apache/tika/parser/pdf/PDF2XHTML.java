@@ -18,6 +18,9 @@ package org.apache.tika.parser.pdf;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -35,6 +38,8 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationMarkup;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.pdfbox.util.TextPosition;
 import org.apache.tika.exception.TikaException;
@@ -48,6 +53,7 @@ import org.apache.tika.sax.EmbeddedContentHandler;
 import org.apache.tika.sax.XHTMLContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 /**
  * Utility class that overrides the {@link PDFTextStripper} functionality
@@ -55,6 +61,13 @@ import org.xml.sax.SAXException;
  * stream.
  */
 class PDF2XHTML extends PDFTextStripper {
+    
+    /**
+     * Maximum recursive depth during AcroForm processing.
+     * Prevents theoretical AcroForm recursion bomb. 
+     */
+    private final static int MAX_ACROFORM_RECURSIONS = 10;
+
 
     // TODO: remove once PDFBOX-1130 is fixed:
     private boolean inParagraph = false;
@@ -71,16 +84,14 @@ class PDF2XHTML extends PDFTextStripper {
      */
     public static void process(
             PDDocument document, ContentHandler handler, ParseContext context, Metadata metadata,
-            boolean extractAnnotationText, boolean enableAutoSpace,
-            boolean suppressDuplicateOverlappingText, boolean sortByPosition)
+            PDFParserConfig config)
             throws SAXException, TikaException {
         try {
             // Extract text using a dummy Writer as we override the
             // key methods to output to the given content
             // handler.
-            PDF2XHTML pdf2XHTML = new PDF2XHTML(handler, context, metadata,
-                                                extractAnnotationText, enableAutoSpace,
-                                                suppressDuplicateOverlappingText, sortByPosition);
+            PDF2XHTML pdf2XHTML = new PDF2XHTML(handler, context, metadata, config);
+
             pdf2XHTML.writeText(document, new Writer() {
                 @Override
                 public void write(char[] cbuf, int off, int len) {
@@ -105,19 +116,20 @@ class PDF2XHTML extends PDFTextStripper {
     private final ContentHandler originalHandler;
     private final ParseContext context;
     private final XHTMLContentHandler handler;
-    private final boolean extractAnnotationText;
-
-    private PDF2XHTML(ContentHandler handler, ParseContext context, Metadata metadata,
-                      boolean extractAnnotationText, boolean enableAutoSpace,
-                      boolean suppressDuplicateOverlappingText, boolean sortByPosition)
+    private final PDFParserConfig config;
+    
+    private PDF2XHTML(ContentHandler handler, ParseContext context, Metadata metadata, 
+            PDFParserConfig config)
             throws IOException {
+        //source of config (derives from context or PDFParser?) is
+        //already determined in PDFParser.  No need to check context here.
+        this.config = config;
         this.originalHandler = handler;
         this.context = context;
         this.handler = new XHTMLContentHandler(handler, metadata);
-        this.extractAnnotationText = extractAnnotationText;
         setForceParsing(true);
-        setSortByPosition(sortByPosition);
-        if (enableAutoSpace) {
+        setSortByPosition(config.getSortByPosition());
+        if (config.getEnableAutoSpace()) {
             setWordSeparator(" ");
         } else {
             setWordSeparator("");
@@ -125,7 +137,7 @@ class PDF2XHTML extends PDFTextStripper {
         // TODO: maybe expose setting these too:
         //setAverageCharTolerance(1.0f);
         //setSpacingTolerance(1.0f);
-        setSuppressDuplicateOverlappingText(suppressDuplicateOverlappingText);
+        setSuppressDuplicateOverlappingText(config.getSuppressDuplicateOverlappingText());
     }
 
     void extractBookmarkText() throws SAXException {
@@ -166,6 +178,11 @@ class PDF2XHTML extends PDFTextStripper {
             // Extract text for any bookmarks:
             extractBookmarkText();
             extractEmbeddedDocuments(pdf, originalHandler);
+            
+            //extract acroform data at end of doc
+            if (config.getExtractAcroFormContent() == true){
+                extractAcroForm(pdf, handler);
+             }
             handler.endDocument();
         } catch (TikaException e){
            throw new IOExceptionWithCause("Unable to end a document", e);
@@ -190,7 +207,7 @@ class PDF2XHTML extends PDFTextStripper {
         try {
             writeParagraphEnd();
             // TODO: remove once PDFBOX-1143 is fixed:
-            if (extractAnnotationText) {
+            if (config.getExtractAnnotationText()) {
                 for(Object o : page.getAnnotations()) {
                     if( o instanceof PDAnnotationLink ) {
                         PDAnnotationLink annotationlink = (PDAnnotationLink) o;
@@ -361,4 +378,104 @@ class PDF2XHTML extends PDFTextStripper {
           }
       }
   }
+    private void extractAcroForm(PDDocument pdf, XHTMLContentHandler handler) throws IOException, 
+    SAXException {
+        //Thank you, Ben Litchfield, for org.apache.pdfbox.examples.fdf.PrintFields
+        //this code derives from Ben's code
+        PDDocumentCatalog catalog = pdf.getDocumentCatalog();
+
+        if (catalog == null)
+            return;
+
+        PDAcroForm form = catalog.getAcroForm();
+        if (form == null)
+            return;
+        
+        @SuppressWarnings("rawtypes")
+        List fields = form.getFields();
+
+        if (fields == null)
+           return;
+        
+        @SuppressWarnings("rawtypes")
+        ListIterator itr  = fields.listIterator();
+
+        if (itr == null)
+           return;
+
+        handler.startElement("div", "class", "acroform");
+        handler.startElement("ol");
+        while (itr.hasNext()){
+           Object obj = itr.next();
+           if (obj != null && obj instanceof PDField){
+              processAcroField((PDField)obj, handler, 0);
+           }
+        }
+        handler.endElement("ol");
+        handler.endElement("div");
+    }
+    
+    private void processAcroField(PDField field, XHTMLContentHandler handler, final int recurseDepth)
+            throws SAXException, IOException { 
+         
+          if (recurseDepth >= MAX_ACROFORM_RECURSIONS){
+             return;
+          }
+          
+          addFieldString(field, handler);
+          
+          @SuppressWarnings("rawtypes")
+          List kids = field.getKids();
+          if(kids != null){
+             
+             @SuppressWarnings("rawtypes")
+             Iterator kidsIter = kids.iterator();
+             if (kidsIter == null){
+                return;
+             }
+             int r = recurseDepth+1;
+             handler.startElement("ol");
+             while(kidsIter.hasNext()){
+                Object pdfObj = kidsIter.next();
+                if(pdfObj != null && pdfObj instanceof PDField){
+                   PDField kid = (PDField)pdfObj;
+                   //recurse
+                   processAcroField(kid, handler, r);
+                }
+             }
+             handler.endElement("ol");
+          }
+      }
+
+      private void addFieldString(PDField field, XHTMLContentHandler handler) throws SAXException{
+          //Pick partial name to present in content and altName for attribute
+          //Ignoring FullyQualifiedName for now
+          String partName = field.getPartialName();
+          String altName = field.getAlternateFieldName();
+
+          StringBuilder sb = new StringBuilder();
+          AttributesImpl attrs = new AttributesImpl();
+
+          if (partName != null){
+             sb.append(partName).append(": ");
+          }
+          if (altName != null){
+             attrs.addAttribute("", "altName", "altName", "CDATA", altName);
+          }
+          String value = "";
+          try {
+              value = field.getValue();
+          } catch (IOException e) {
+               //swallow
+          }
+          
+          if (value != null && ! value.equals("null")){
+              sb.append(value);
+          }
+          if (attrs.getLength() > 0 || sb.length() > 0){
+              handler.startElement("li", attrs);
+              handler.characters(sb.toString());
+              handler.endElement("li");
+          }
+      }
 }

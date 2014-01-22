@@ -41,12 +41,12 @@
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-      <version>2.6.1</version>
+      <version>2.7.8</version>
     </dependency>
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-transports-http-jetty</artifactId>
-      <version>2.6.1</version>
+      <version>2.7.8</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -62,6 +62,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
+      <version>4.11</version>
     </dependency>
   </dependencies>
 
@@ -170,5 +171,47 @@
       </plugin>
     </plugins>
   </build>
-
+  <profiles>
+     <profile>
+         <id>server</id>
+         <build>
+             <defaultGoal>test</defaultGoal>
+             <plugins>
+                 <plugin>
+                     <groupId>org.codehaus.mojo</groupId>
+                     <artifactId>exec-maven-plugin</artifactId>
+                     <executions>
+                        <execution>
+                             <phase>test</phase>
+                             <goals>
+                                 <goal>java</goal>
+                             </goals>
+                             <configuration>
+                                 <mainClass>org.apache.tika.server.TikaServerCli</mainClass>
+                             </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+         </build>
+      </profile>
+  </profiles>  
+  <url>http://tika.apache.org/</url>
+  <organization>
+  	<name>The Apache Software Foundation</name>
+  	<url>http://www.apache.org</url>
+  </organization>
+  <scm>
+  	<url>http://svn.apache.org/viewvc/tika/trunk/tika-server</url>
+  	<connection>scm:svn:http://svn.apache.org/repos/asf/tika/trunk/tika-server</connection>
+  	<developerConnection>scm:svn:https://svn.apache.org/repos/asf/tika/trunk/tika-server</developerConnection>
+  </scm>
+  <issueManagement>
+  	<system>JIRA</system>
+  	<url>https://issues.apache.org/jira/browse/TIKA</url>
+  </issueManagement>
+  <ciManagement>
+  	<system>Jenkins</system>
+  	<url>https://builds.apache.org/job/Tika-trunk/</url>
+  </ciManagement>
 </project>

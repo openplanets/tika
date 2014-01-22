@@ -29,6 +29,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.io.RandomAccess;
+import org.apache.pdfbox.io.RandomAccessBuffer;
 import org.apache.pdfbox.io.RandomAccessFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -64,20 +65,7 @@ public class PDFParser extends AbstractParser {
     /** Serial version UID */
     private static final long serialVersionUID = -752276948656079347L;
 
-    // True if we let PDFBox "guess" where spaces should go:
-    private boolean enableAutoSpace = true;
-
-    // True if we let PDFBox remove duplicate overlapping text:
-    private boolean suppressDuplicateOverlappingText;
-
-    // True if we extract annotation text ourselves
-    // (workaround for PDFBOX-1143):
-    private boolean extractAnnotationText = true;
-
-    // True if we should sort text tokens by position
-    // (necessary for some PDFs, but messes up other PDFs):
-    private boolean sortByPosition = false;
-
+    private PDFParserConfig defaultConfig = new PDFParserConfig();
     /**
      * Metadata key for giving the document password to the parser.
      *
@@ -100,20 +88,30 @@ public class PDFParser extends AbstractParser {
        
         PDDocument pdfDocument = null;
         TemporaryResources tmp = new TemporaryResources();
-
+        //config from context, or default if not set via context
+        PDFParserConfig localConfig = context.get(PDFParserConfig.class, defaultConfig);
         try {
             // PDFBox can process entirely in memory, or can use a temp file
             //  for unpacked / processed resources
             // Decide which to do based on if we're reading from a file or not already
             TikaInputStream tstream = TikaInputStream.cast(stream);
             if (tstream != null && tstream.hasFile()) {
-               // File based, take that as a cue to use a temporary file
-               RandomAccess scratchFile = new RandomAccessFile(tmp.createTemporaryFile(), "rw");
-               pdfDocument = PDDocument.load(new CloseShieldInputStream(stream), scratchFile, true);
+                // File based, take that as a cue to use a temporary file
+                RandomAccess scratchFile = new RandomAccessFile(tmp.createTemporaryFile(), "rw");
+                if (localConfig.getUseNonSequentialParser() == true){
+                    pdfDocument = PDDocument.loadNonSeq(new CloseShieldInputStream(stream), scratchFile);
+                } else {
+                    pdfDocument = PDDocument.load(new CloseShieldInputStream(stream), scratchFile, true);
+                }
             } else {
-               // Go for the normal, stream based in-memory parsing
-               pdfDocument = PDDocument.load(new CloseShieldInputStream(stream), true);
+                // Go for the normal, stream based in-memory parsing
+                if (localConfig.getUseNonSequentialParser() == true){
+                    pdfDocument = PDDocument.loadNonSeq(new CloseShieldInputStream(stream), new RandomAccessBuffer()); 
+                } else {
+                    pdfDocument = PDDocument.load(new CloseShieldInputStream(stream), true);
+                }
             }
+            
            
             if (pdfDocument.isEncrypted()) {
                 String password = null;
@@ -142,9 +140,7 @@ public class PDFParser extends AbstractParser {
             }
             metadata.set(Metadata.CONTENT_TYPE, "application/pdf");
             extractMetadata(pdfDocument, metadata);
-            PDF2XHTML.process(pdfDocument, handler, context, metadata,
-                              extractAnnotationText, enableAutoSpace,
-                              suppressDuplicateOverlappingText, sortByPosition);
+            PDF2XHTML.process(pdfDocument, handler, context, metadata, localConfig);
             
         } finally {
             if (pdfDocument != null) {
@@ -233,39 +229,74 @@ public class PDFParser extends AbstractParser {
             }
         } else if(value instanceof COSString) {
             addMetadata(metadata, name, ((COSString)value).getString());
-        } else {
+        } else if (value != null){
             addMetadata(metadata, name, value.toString());
         }
     }
 
+    public void setPDFParserConfig(PDFParserConfig config){
+        this.defaultConfig = config;
+    }
+    
+    public PDFParserConfig getPDFParserConfig(){
+        return defaultConfig;
+    }
+    
+    /**
+     * If true, the parser will use the NonSequentialParser.  This may
+     * be faster than the full doc parser.
+     * If false (default), this will use the full doc parser.
+     * 
+     * @deprecated use {@link #setPDFParserConfig(PDFParserConfig)}
+     */
+    public void setUseNonSequentialParser(boolean v){
+        defaultConfig.setUseNonSequentialParser(v);
+    }
+    
+    /** 
+     * @see #setUseNonSequentialParser(boolean) 
+     * @deprecated use {@link #getPDFParserConfig()}
+     */
+    public boolean getUseNonSequentialParser(){
+        return defaultConfig.getUseNonSequentialParser();
+    }
+    
     /**
      *  If true (the default), the parser should estimate
      *  where spaces should be inserted between words.  For
      *  many PDFs this is necessary as they do not include
      *  explicit whitespace characters.
+     *
+     *  @deprecated use {@link #setPDFParserConfig(PDFParserConfig)}
      */
     public void setEnableAutoSpace(boolean v) {
-        enableAutoSpace = v;
+        defaultConfig.setEnableAutoSpace(v);
     }
 
-    /** @see #setEnableAutoSpace. */
+    /** 
+     * @see #setEnableAutoSpace. 
+     * @deprecated use {@link #getPDFParserConfig()}
+     */
     public boolean getEnableAutoSpace() {
-        return enableAutoSpace;
+        return defaultConfig.getEnableAutoSpace();
     }
 
     /**
      * If true (the default), text in annotations will be
      * extracted.
+     * @deprecated use {@link #setPDFParserConfig(PDFParserConfig)}
      */
     public void setExtractAnnotationText(boolean v) {
-        extractAnnotationText = v;
+        defaultConfig.setExtractAnnotationText(v);
     }
 
     /**
      * If true, text in annotations will be extracted.
+     * 
+     * @deprecated use {@link #getPDFParserConfig()}
      */
     public boolean getExtractAnnotationText() {
-        return extractAnnotationText;
+        return defaultConfig.getExtractAnnotationText();
     }
 
     /**
@@ -276,14 +307,20 @@ public class PDFParser extends AbstractParser {
      *  slow down extraction substantially (PDFBOX-956) and
      *  sometimes remove characters that were not in fact
      *  duplicated (PDFBOX-1155).  By default this is disabled.
+     *  
+     *  @deprecated use {@link #setPDFParserConfig(PDFParserConfig)}
      */
     public void setSuppressDuplicateOverlappingText(boolean v) {
-        suppressDuplicateOverlappingText = v;
+        defaultConfig.setSuppressDuplicateOverlappingText(v);
     }
 
-    /** @see #setSuppressDuplicateOverlappingText. */
+    /** 
+     * @see #setSuppressDuplicateOverlappingText. 
+     * 
+     * @deprecated use {@link #getPDFParserConfig()}
+     */
     public boolean getSuppressDuplicateOverlappingText() {
-        return suppressDuplicateOverlappingText;
+        return defaultConfig.getSuppressDuplicateOverlappingText();
     }
 
     /**
@@ -293,14 +330,20 @@ public class PDFParser extends AbstractParser {
      *  order"), while for other PDFs it can produce the
      *  wrong result (for example if there are 2 columns,
      *  the text will be interleaved).  Default is false.
+     *  
+     *  @deprecated use {@link #setPDFParserConfig(PDFParserConfig)}
      */
     public void setSortByPosition(boolean v) {
-        sortByPosition = v;
+        defaultConfig.setSortByPosition(v);
     }
 
-    /** @see #setSortByPosition. */
+    /** 
+     * @see #setSortByPosition. 
+     * 
+     * @deprecated use {@link #getPDFParserConfig()}
+     */
     public boolean getSortByPosition() {
-        return sortByPosition;
+        return defaultConfig.getSortByPosition();
     }
 
 }

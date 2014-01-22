@@ -17,6 +17,25 @@ package org.apache.tika.server;
  * limitations under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.cxf.binding.BindingFactoryManager;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.JAXRSBindingFactory;
@@ -24,18 +43,10 @@ import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.tika.io.IOUtils;
 import org.eclipse.jetty.util.ajax.JSON;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -60,16 +71,11 @@ public class MetadataEPTest extends CXFTestBase {
     return new ByteArrayInputStream(out.toByteArray());
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see junit.framework.TestCase#setUp()
-   */
-  @Override
-  protected void setUp() throws Exception {
+  @Before
+  public void setUp() {
     JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
     sf.setResourceClasses(MetadataEP.class);
-    List providers = new ArrayList();
+    List<Object> providers = new ArrayList<Object>();
     providers.add(new CSVMessageBodyWriter());
     providers.add(new JSONMessageBodyWriter());
     sf.setProviders(providers);
@@ -81,13 +87,8 @@ public class MetadataEPTest extends CXFTestBase {
     server = sf.create();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see junit.framework.TestCase#tearDown()
-   */
-  @Override
-  protected void tearDown() throws Exception {
+  @After
+  public void tearDown()  {
     server.stop();
     server.destroy();
   }
@@ -100,6 +101,7 @@ public class MetadataEPTest extends CXFTestBase {
 
     Reader reader = new InputStreamReader((InputStream) response.getEntity());
 
+    @SuppressWarnings("resource")
     CSVReader csvReader = new CSVReader(reader);
 
     Map<String, String> metadata = new HashMap<String, String>();
@@ -121,7 +123,7 @@ public class MetadataEPTest extends CXFTestBase {
     Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
     Reader reader = new InputStreamReader((InputStream) response.getEntity());
-    Map metadata = (Map) JSON.parse(reader);
+    Map<?, ?> metadata = (Map<?, ?>) JSON.parse(reader);
 
     assertNotNull(metadata.get("Author"));
     assertEquals("Maxim Valyanskiy", metadata.get("Author"));
@@ -145,7 +147,7 @@ public class MetadataEPTest extends CXFTestBase {
     Assert.assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
     Reader reader = new InputStreamReader((InputStream) response.getEntity());
-    Map metadata = (Map) JSON.parse(reader);
+    Map<?, ?> metadata = (Map<?, ?>) JSON.parse(reader);
 
     assertNotNull(metadata.get("Author"));
     assertEquals("Maxim Valyanskiy", metadata.get("Author"));

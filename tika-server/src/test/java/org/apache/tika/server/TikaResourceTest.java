@@ -17,15 +17,22 @@
 
 package org.apache.tika.server;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
+
 import org.apache.cxf.binding.BindingFactoryManager;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.JAXRSBindingFactory;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.lifecycle.SingletonResourceProvider;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TikaResourceTest extends CXFTestBase {
@@ -35,17 +42,11 @@ public class TikaResourceTest extends CXFTestBase {
 	private static final int UNPROCESSEABLE = 422;
 	private static final String endPoint = "http://localhost:"
 			+ TikaServerCli.DEFAULT_PORT;
-	private static final String WADL_MEDIA_TYPE = "application/vnd.sun.wadl+xml";
-
+	
 	private Server server;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see junit.framework.TestCase#setUp()
-	 */
-	@Override
-	protected void setUp() throws Exception {
+	@Before
+	public void setUp() {
 		JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
 		sf.setResourceClasses(TikaResource.class);
 		sf.setResourceProvider(TikaResource.class,
@@ -60,13 +61,8 @@ public class TikaResourceTest extends CXFTestBase {
 		server = sf.create();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see junit.framework.TestCase#tearDown()
-	 */
-	@Override
-	protected void tearDown() throws Exception {
+    @After
+	public void tearDown() throws Exception {
 		server.stop();
 		server.destroy();
 	}
@@ -93,11 +89,11 @@ public class TikaResourceTest extends CXFTestBase {
 	@Test
 	public void testApplicationWadl() throws Exception {
 		Response response = WebClient
-				.create(endPoint + TIKA_PATH + "/application.wadl")
+				.create(endPoint + TIKA_PATH + "?_wadl")
 				.accept("text/plain").get();
 		String resp = getStringFromInputStream((InputStream) response
 				.getEntity());
-		assertTrue(resp.length() > 0);
+		assertTrue(resp.startsWith("<application"));
 	}
 
 	@Test
@@ -151,4 +147,19 @@ public class TikaResourceTest extends CXFTestBase {
 
     assertEquals(UNPROCESSEABLE, response.getStatus());
   }
+  
+  @Test
+  public void testSimpleWordMultipartXML() throws Exception {
+    ClassLoader.getSystemResourceAsStream(TEST_DOC);  
+    Attachment attachmentPart = 
+        new Attachment("myworddoc", "application/msword", ClassLoader.getSystemResourceAsStream(TEST_DOC));
+    WebClient webClient = WebClient.create(endPoint + TIKA_PATH + "/form");
+    Response response = webClient.type("multipart/form-data")
+      .accept("text/xml")
+      .put(attachmentPart);
+    String responseMsg = getStringFromInputStream((InputStream) response
+      .getEntity());
+    assertTrue(responseMsg.contains("test"));
+  }
+  
 }

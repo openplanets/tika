@@ -16,9 +16,13 @@
  */
 package org.apache.tika.parser.chm;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.tika.exception.TikaException;
@@ -26,6 +30,11 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AbstractParser;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.chm.accessor.DirectoryListingEntry;
+import org.apache.tika.parser.chm.core.ChmExtractor;
+import org.apache.tika.parser.html.HtmlParser;
+import org.apache.tika.sax.BodyContentHandler;
+import org.apache.tika.sax.XHTMLContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -35,24 +44,61 @@ public class ChmParser extends AbstractParser {
     private static final long serialVersionUID = 5938777307516469802L;
 
     private static final Set<MediaType> SUPPORTED_TYPES =
-            Collections.singleton(MediaType.application("chm"));
+            Collections.unmodifiableSet(new HashSet<MediaType>(Arrays.asList(
+                    MediaType.application("vnd.ms-htmlhelp"),
+                    MediaType.application("chm"),
+                    MediaType.application("x-chm"))));
 
     public Set<MediaType> getSupportedTypes(ParseContext context) {
         return SUPPORTED_TYPES;
     }
 
-
     public void parse(InputStream stream, ContentHandler handler,
             Metadata metadata, ParseContext context) throws IOException,
             SAXException, TikaException {
-        CHMDocumentInformation chmInfo = CHMDocumentInformation.load(stream);
-        metadata.set(Metadata.CONTENT_TYPE, "chm");
-        extractMetadata(chmInfo, metadata);
-        CHM2XHTML.process(chmInfo, handler);
+        ChmExtractor chmExtractor = new ChmExtractor(stream);
+
+        // metadata
+        metadata.set(Metadata.CONTENT_TYPE, "application/vnd.ms-htmlhelp");
+
+        // content
+        XHTMLContentHandler xhtml = new XHTMLContentHandler(handler, metadata);
+        xhtml.startDocument();
+
+        Iterator<DirectoryListingEntry> it =
+                chmExtractor.getChmDirList().getDirectoryListingEntryList().iterator();
+        while (it.hasNext()) {
+            DirectoryListingEntry entry = it.next();
+            if (entry.getName().endsWith(".html") || entry.getName().endsWith(".htm")) {
+                xhtml.characters(extract(chmExtractor.extractChmEntry(entry)));
+            }
+        }
+
+        xhtml.endDocument();
     }
 
-    private void extractMetadata(CHMDocumentInformation chmInfo,
-            Metadata metadata) throws TikaException, IOException {
-        chmInfo.getCHMDocInformation(metadata);
+    /**
+     * Extracts data from byte[]
+     */
+    private String extract(byte[] byteObject) throws TikaException {// throws IOException
+        StringBuilder wBuf = new StringBuilder();
+        InputStream stream = null;
+        Metadata metadata = new Metadata();
+        HtmlParser htmlParser = new HtmlParser();
+        BodyContentHandler handler = new BodyContentHandler(-1);// -1
+        ParseContext parser = new ParseContext();
+        try {
+            stream = new ByteArrayInputStream(byteObject);
+            htmlParser.parse(stream, handler, metadata, parser);
+            wBuf.append(handler.toString()
+                    + System.getProperty("line.separator"));
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            // Pushback overflow from tagsoup
+        }
+        return wBuf.toString();
     }
+
+
 }
